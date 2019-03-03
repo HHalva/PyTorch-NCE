@@ -1,0 +1,138 @@
+\documentclass[twoside,11pt]{article}
+
+\usepackage{amsmath}
+\usepackage{multirow} 
+\usepackage{epsfig} 
+\usepackage{pslatex}
+\usepackage{float}
+\usepackage{amssymb}
+\usepackage{mathtools}
+\usepackage{bm}
+\usepackage{bbm}
+\usepackage{graphicx}
+
+\newcommand{\ix}{v}
+\newcommand{\ixm}{V}
+\newcommand{\w}{\mathbf{w}}
+\newcommand{\bb}{\mathbf{b}}
+\newcommand{\db}{\mathbf{d}}
+\newcommand{\s}{\mathbf{s}}
+\newcommand{\x}{\mathbf{x}}
+\newcommand{\y}{\mathbf{y}}
+\newcommand{\kb}{\mathbf{k}}
+\newcommand{\mv}{\mathbf{m}}
+\newcommand{\cc}{\mathbf{c}}
+\renewcommand{\u}{\mathbf{u}}
+\newcommand{\f}{\mathbf{f}}
+\newcommand{\g}{\mathbf{g}}
+\newcommand{\q}{\mathbf{q}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\A}{\mathbf{A}}
+\newcommand{\G}{\mathbf{G}}
+\newcommand{\J}{\mathbf{J}}
+\newcommand{\C}{\mathbf{C}}
+\newcommand{\Lb}{\mathbf{L}}
+\newcommand{\M}{\mathbf{M}}
+\newcommand{\W}{\mathbf{W}}
+\newcommand{\I}{\mathbf{I}}
+\newcommand{\vv}{\mathbf{v}}
+\newcommand{\dm}{\Delta\mathbf{E}}
+\newtheorem{Definition}{Definition}
+\newcommand{\var}{\text{var}}
+\renewcommand{\t}{\tau}
+\newtheorem{Theorem}{Theorem}
+\newtheorem{Corollary}{Corollary}
+\newtheorem{Lemma}{Lemma}
+\newcommand{\Lambdab}{\boldsymbol{\Lambda}}
+\newcommand{\lambdab}{\boldsymbol{\lambda}}
+\newcommand{\thetab}{\boldsymbol{\theta}}
+\newcommand{\alphab}{\boldsymbol{\alpha}}
+\newcommand{\Rb}{\boldsymbol{\alpha}}
+\newcommand{\h}{\mathbf{h}}
+\newcommand{\qed}{Q.E.D.}
+\newcommand{\new}{(NEW!)}
+
+\begin{document}
+
+
+\subsection{rough notes on noise-contrastive NL-ICA}
+
+\begin{align}
+	p(s_i|c) &= \frac{h(s_i)}{Z(\mathbf{\lambda_{i,c}})}   \exp\{\mathbf{\lambdab_{i, c}} \cdot \mathbf{q}(s_i)\}\\
+	p(\mathbf{s}|c) &= \exp\{\sum_{i=1}^N \mathbf{\lambdab_{i, c}} \cdot \mathbf{q}(s_i)\} \prod_{i=1}^N \frac{h(s_i)}{z(\mathbf{\lambda_{i,c}})} \\
+			&=\frac{k(\mathbf{s})}{Z(\Lambdab_c)}\exp\{\sum_{i=1}^N \mathbf{\lambda_{i, c}}\cdot\mathbf{q}(s_i)\} \\ 
+	\text{Stack vectors as follows}&\text{ and assume same suff stats for all components:}\\
+	\Lambdab_c &= \begin{bmatrix} \lambdab_{1,c} \\ \lambdab_{2,c} \\ \vdots \\ \lambdab_{N,c} \end{bmatrix} \mathbf{Q(s)}= \begin{bmatrix} \q(s_1) \\ \q(s_2) \\ \vdots \\ \q_(s_N) \end{bmatrix} \\
+	p(\mathbf{s}|c) & =\frac{k(\mathbf{s})}{Z(\Lambdab_c)}\exp\{\mathbf{\Lambdab_c}\cdot\mathbf{Q(s)}\} \\
+	p(\mathbf{s}) &= \sum_{c=1}^C \pi_c \frac{k(\mathbf{s})}{Z(\Lambdab_c)}\exp\{\mathbf{\Lambdab_c}\cdot\mathbf{Q(s)}\} \\
+	p_d(\mathbf{x}) &=|\J\mathbf{(g(x))}| \sum_{c=1}^C \pi_c \frac{k(\mathbf{g(x)})}{Z(\Lambdab_c)}\exp\{\mathbf{\Lambdab_c}\cdot\mathbf{Q(g(x))}\} \\
+	p_d(\mathbf{x}) &= f(\mathbf{x}) \sum_{c=1}^C \pi_c \frac{1}{Z(\Lambdab_c)}\exp\{\mathbf{\Lambdab_c}\cdot\mathbf{Q(g(x))}\}
+\end{align}
+
+Some problems to solve are: (1) unknown partition function and cluster probabilities (2) unknown natural parameters acting with unknown sufficient statistics, (3) unknown base measure $f(x)$. (1) as discussed approach to solve (1) via NCE. Despite trying to think of alternatives the most simple way to solve (2) still seems to be to parameterize the sufficient statistics with MLPs or equivalent. For (3), if we already parameterize the sufficient statistics, I dont see why not then just parameterize one more function i.e. the base measure. Even easier would be to assume base measure of 1 and let the sufficient statistics do the work, but that seems a bit like cheating. So for now, assume we parametrize 'everything' and have:
+
+\begin{align}
+	p_m(\mathbf{x}, \Theta) &= f(\mathbf{x}; \beta) \sum_{c=1}^C a_c \exp\{\mathbf{\eta_c}\cdot\mathbf{T(x; \thetab))}\}
+\end{align}
+
+And if (9) holds we can then use universal approximator capabilities to claim that $P_d$ exists in parameterized form:
+
+\begin{align}
+	p_d = p_m(\mathbf{x}, \Theta^{\star})
+\end{align}
+
+Can we then not just apply the results from mixture NCE paper to have consistency etc. If so, we would in theory reach:
+
+\begin{align}
+&f(\mathbf{x}) \sum_{c=1}^C \pi_c \frac{1}{Z(\Lambdab_c)}\exp\{\mathbf{\Lambdab_c}\cdot\mathbf{Q(g(x))}\} = f(\mathbf{x}; \hat \beta) \sum_{c=1}^C \hat a_c \exp\{\mathbf{\hat \eta_c}\cdot\mathbf{T(x; \hat \thetab))}\}
+\end{align}
+
+Further, posterior doesnt depend on base measure:
+\begin{align}
+	p(c=k|\mathbf{x}) &=\frac{\pi_k \frac{1}{Z(\Lambdab_k)}\exp\{\mathbf{\Lambdab_k}\cdot\mathbf{Q(g(x))}\}}{\sum_{c=1}^C \pi_c \frac{1}{Z(\Lambdab_c)}\exp\{\mathbf{\Lambdab_c}\cdot\mathbf{Q(g(x))}\}} 
+\end{align}
+Also from above, posterior ratios:
+\begin{align}
+	\frac{p(c=k|\mathbf{x})}{p(c=1|\mathbf{x})} &=\frac{\pi_k Z(\Lambdab_1)}{\pi_1 Z(\Lambdab_k)}\exp\{(\mathbf{\Lambdab_k}-\mathbf{\Lambdab_1})\cdot\mathbf{Q(g(x))}\}
+\end{align}
+Re-define parameters with respect to first cluster, equating estimates with true posterior, take logs
+\begin{align}
+	\mathbf{\tilde \Lambdab_k}\cdot\mathbf{Q(g(x))} &= \mathbf{\tilde \eta_k}\cdot\mathbf{\mathbf{T(x; \hat \thetab)}}+const
+\end{align}
+Collecting all together:
+\begin{align}
+	\mathbf{L}\mathbf{Q(g(x))}&=\W \mathbf{\mathbf{T(x; \hat \thetab)}} + const \\
+	\mathbf{Q(s)}&=\A \mathbf{\mathbf{T(x; \hat \thetab)}} + const \\
+\end{align}
+c.f. TCL
+
+\subsection{practical considerations}
+Is there going be any way that this will work in practice -- need to think what noise distribution could create close enough samples to train a model with potentially loads of parameters. Could after each iteration make the most recent estimate to be the noise distribution. Theoretically this could work, and I have done some derivations to see where this would lead. Indeed, it seems like Goodfellow did some work on this https://arxiv.org/pdf/1412.6515.pdf. However, my derivation looks quite different...something to think for later. Of course the need to create more realistic noise takes us to GANs, though here the generative distribution could be explicitly defined.
+
+
+
+
+\subsection{Thoughts on base measure}
+But do we really have to reparameterize the base measure i.e. problem (3) from above? The problem more specifically is that the base measure doesn't disappear in NCE objective, nor in its gradient at it follows from the fact that NCE uses posterior class probabilities as per below:
+
+\begin{align}
+	P(C=1|x)=\frac{p_m(x, \theta)}{p_m(x, \theta) + vp_n(x)}
+\end{align}
+Other way of seeing this is that log difference of distributions is fed into a sigmoid non-linearity; that is we have basically a logistic regression. If we could have noise somehow function of original data so that base measure remains then they would cancel out but this seems hard to do here. One thought is though that the gradinet of $p_m$ in logs shouldn't depend on h(x) but due to the structure of above equation that doesn't really materialize. But what if instead of above, use:
+
+\begin{align}
+	\frac{p_m(x, \theta)}{vp_n(x)}
+\end{align}
+Of course the noise distribution has no parameters so what one could evantually get is trying to max $p_m(x;\theta)$ and min $p_m(y_n;\theta)$. Feel like I'm missing something obvious...
+
+\begin{align}
+	\mathbb{E}_{p_d} \left[\ln(p_m(x; \theta)) \right] - \nu \mathbb{E}_{p_n} \left[\ln(p_m(x,\theta)) \right]
+\end{align}
+
+
+
+
+
+
+\end{document}
+
